@@ -67,7 +67,15 @@ class TextLayer( Layer ):
             args = [ self._string, self.antialias, self.color ]
             if self.background is not None:
                 args.append( self.background )
-            self.surface = self.font.render( *args )
+            rendered = self.font.render( *args )
+            rect = rendered.get_rect()
+            rect.x = self.pos[ 0 ]
+            rect.y = self.pos[ 1 ]
+            rwidth = rect.w
+            rect.w = self.surface.get_rect().w
+            self.surface.fill( ( 0, 0, 0, 0 ), rect )
+            rect.w = rwidth
+            self.surface.blit( self.font.render( *args ), rect )
 
 
 #=============================================================================

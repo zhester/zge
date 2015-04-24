@@ -60,6 +60,12 @@ class Engine( object ):
         self._fps_limit = 120.0
         self._tick_step = int( round( 1000.0 / self._fps_limit ) )
 
+        # engine is currently running
+        self._is_running = False
+
+        # short debug string for various things
+        self._debug = ''
+
 
     #=========================================================================
     def run( self ):
@@ -71,18 +77,23 @@ class Engine( object ):
         self._last_tick = pygame.time.get_ticks()
 
         # execute infinite application loop
-        done = False
-        while done == False:
+        self._is_running = True
+        while self._is_running:
 
             # process event queue
             for event in pygame.event.get():
 
                 # check for quit event
                 if event.type == pygame.QUIT:
-                    done = True
+                    self._is_running = False
+
+                # check for key event
+                elif ( event.type == pygame.KEYDOWN ) \
+                  or ( event.type == pygame.KEYUP   ) :
+                    self.trigger_key_event( event )
 
             # exit application loop if done
-            if done == True:
+            if self._is_running == False:
                 break
 
             # update the game display
@@ -119,6 +130,29 @@ class Engine( object ):
 
 
     #=========================================================================
+    def trigger_key_event( self, event ):
+        """
+        Initiates key input events.
+        """
+
+        # ZIH - temp, just seeing how to poll the keys
+        mods = pygame.key.get_mods()
+        mod_bits = [
+            ( pygame.KMOD_ALT,   'A' ),
+            ( pygame.KMOD_CTRL,  'C' ),
+            ( pygame.KMOD_SHIFT, 'S' )
+        ]
+        mod_str = ''.join( b[ 1 ] for b in mod_bits if b[ 0 ] & mods )
+        if event.type == pygame.KEYUP:
+            self._debug = '({})'.format( mod_str )
+        elif event.type == pygame.KEYDOWN:
+            self._debug = '({}){}'.format(
+                mod_str,
+                pygame.key.name( event.key )
+            )
+
+
+    #=========================================================================
     def update( self ):
         """
         Updates the display.
@@ -126,10 +160,11 @@ class Engine( object ):
 
         # update overlayed information
         self._top.set_text(
-            ' [ fps:{:4.0f} sch:{:3} tck:{:08} ]'.format(
+            ' [ fps:{:4.0f} sch:{:3} tck:{:08} dbg:{} ]'.format(
                 self._fps,
                 self._last_wait,
-                self._last_tick
+                self._last_tick,
+                self._debug
             )
         )
 
